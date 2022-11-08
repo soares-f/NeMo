@@ -113,6 +113,7 @@ class MegatronGPTPromptLearningModel(MegatronBaseModel, TextGeneration):
                 "activations_checkpoint_num_layers", None
             )
             frozen_model_cfg.activations_checkpoint_method = self.cfg.get("activations_checkpoint_method", None)
+            frozen_model_cfg.seed = self.cfg.seed
 
         if self.trainer.precision == 32:
             self.autocast_dtype = torch.float
@@ -266,6 +267,8 @@ class MegatronGPTPromptLearningModel(MegatronBaseModel, TextGeneration):
         # Total virtual tokens should be the same across all new tasks, so just need one
         new_task = self.new_tasks[0]
         total_virtual_tokens = self.task_templates[new_task]["total_virtual_tokens"]
+
+        torch.manual_seed(self.cfg.seed)
 
         encoder_type = PromptEncoderType(self.cfg.p_tuning.get("encoder_type", "tpmlp").lower())
         if encoder_type == PromptEncoderType.TPMLP:
@@ -618,7 +621,8 @@ class MegatronGPTPromptLearningModel(MegatronBaseModel, TextGeneration):
         ## logging
         # we can only log on one rank if it is rank zero so we broadcast from last rank
         # we can avoid this broadcast by updating the PTL log function to accept specific ranks
-        torch.distributed.broadcast(loss_mean, get_last_rank())
+        # torch.distributed.broadcast(loss_mean, get_last_rank())
+        # torch.distributed.barrier()
 
         if self.cfg.precision == 16 and hasattr(self.trainer.precision_plugin.scaler, "_scale"):
             loss_scale = self.trainer.precision_plugin.scaler._scale
@@ -844,6 +848,7 @@ class MegatronGPTPromptLearningModel(MegatronBaseModel, TextGeneration):
         sampler = torch.utils.data.distributed.DistributedSampler(
             dataset, num_replicas=data_parallel_size, rank=rank, shuffle=shuffle
         )
+        # sampler = None
 
         assert batch_size % data_parallel_size == 0, "Global batch size must be evenly divisible by data parallel size"
 
@@ -866,6 +871,7 @@ class MegatronGPTPromptLearningModel(MegatronBaseModel, TextGeneration):
             num_workers=num_workers,
             pin_memory=pin_memory,
         )
+        # persistent_workers=True,
 
         return dataset, dataloader
 
