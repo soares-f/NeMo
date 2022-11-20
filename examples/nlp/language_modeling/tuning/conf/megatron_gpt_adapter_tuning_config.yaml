@@ -52,56 +52,17 @@ model:
   restore_path: null # Path to an existing adapter .nemo model you wish to add new tasks to or run inference with
   language_model_path: ??? # Path to the GPT language model .nemo file, always required
   existing_tasks: [] # List of tasks the model has already been p-tuned/prompt-tuned for, needed when a restore path is given
-  new_tasks: ["rte"] # List of new tasknames to be prompt-tuned
+  new_tasks: ["t0_manual"] # List of new tasknames to be prompt-tuned
 
   task_templates: # Add more/replace tasks as needed, these are just examples
-  - taskname: "boolq" # The task name
-    prompt_template: "Passage: {passage} \nQuestion: {question} \nAnswer: {answer}" # Prompt template for task, specify virtual prompt positions with <|VIRTUAL_PROMPT_#|>
+  - taskname: "t0_manual" # The task name
+    prompt_template: "{text} {answer}" # Prompt template for task, specify virtual prompt positions with <|VIRTUAL_PROMPT_#|>
     total_virtual_tokens: 0 # Sum of tokens in virtual_token_splits must add to this number. Can differ between new and existing tasks, but must match across all new tasks being tuned at the same time.
     virtual_token_splits: [] # number of virtual tokens to be inserted at each VIRTUAL PROMPT location, must add to total_virtual_tokens
-    truncate_field: "passage" # The {field} in the prompt template whose text will be truncated if the input is too long, if null, inputs that are too long will just be skipped.
-    answer_only_loss: True 
-    answer_field: "answer"
-
-  - taskname: "intent_and_slot"
-    prompt_template: "intent options: {intent_options} slot options: {slot_options} {utterance} \nintent: {intent} \nslot: {slot}"
-    total_virtual_tokens: 0 
-    answer_only_loss: False 
-    virtual_token_splits: []
-    truncate_field: null
-
-  - taskname: "rte" 
-    prompt_template: "sentence1: {premise} sentence2: {hypothesis} Answer: {answer}" 
-    total_virtual_tokens: 0
-    virtual_token_splits: []
-    truncate_field: null
+    truncate_field: null # The {field} in the prompt template whose text will be truncated if the input is too long, if null, inputs that are too long will just be skipped.
     answer_only_loss: True
     answer_field: "answer"
-
-  - taskname: "squad" 
-    prompt_template: "context: {context} question: {question} answer: {answer}" 
-    total_virtual_tokens: 0
-    virtual_token_splits: []
-    truncate_field: null
-    answer_only_loss: True
-    answer_field: "answer"
-
-  - taskname: "arc-challenge" 
-    prompt_template: "question: {question} choices: {choices} answer: {answer}" 
-    total_virtual_tokens: 0
-    virtual_token_splits: []
-    truncate_field: null
-    answer_only_loss: True
-    answer_field: "answer"
-
-  - taskname: "xsum" 
-    prompt_template: "{source} Summary: {target}" 
-    total_virtual_tokens: 0
-    virtual_token_splits: []
-    truncate_field: null
-    answer_only_loss: True
-    answer_field: "target"
-
+    
   adapter_tuning:
     type: 'parallel_adapter' # this should be either 'parallel_adapter' or 'linear_adapter'
     adapter_dim: 50

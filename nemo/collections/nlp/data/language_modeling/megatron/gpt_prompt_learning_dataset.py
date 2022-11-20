@@ -130,6 +130,7 @@ class GPTPromptLearningDataset(Dataset):
             else:
                 doc = json.loads(json_line)
 
+            doc = {"taskname": doc["taskname"], "text": doc["text"], "answer": doc["answer"]}
             taskname = doc["taskname"]
             prompt_template = self.task_templates[taskname]["prompt_template"]
             prompt_template_fields = self.task_templates[taskname]["prompt_template_fields"]
