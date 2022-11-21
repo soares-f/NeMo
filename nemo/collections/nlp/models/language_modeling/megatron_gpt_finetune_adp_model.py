@@ -26,12 +26,19 @@ from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import Meg
 from nemo.collections.nlp.models.language_modeling.megatron_gpt_prompt_learning_model import (
     MegatronGPTPromptLearningModel,
 )
+
 from nemo.collections.nlp.modules.common import VirtualPromptStyle
 from nemo.collections.nlp.modules.common.megatron.parallel_adapters import ParallelLinearAdapterConfig
 from nemo.collections.nlp.modules.common.megatron.utils import average_losses_across_data_parallel_group
 from nemo.collections.nlp.parts.utils_funcs import get_last_rank
 from nemo.core.classes.mixins import adapter_mixins
 from nemo.utils import logging
+
+from nemo.collections.nlp.modules.common.megatron.utils import (
+    average_losses_across_data_parallel_group,
+    get_all_params_for_weight_decay_optimization,
+    get_params_for_weight_decay_optimization,
+)
 
 
 class MegatronGPTAdapterFT(MegatronGPTPromptLearningModel):
@@ -165,18 +172,24 @@ class MegatronGPTAdapterFT(MegatronGPTPromptLearningModel):
     #             module.set_enabled_adapters(enabled=True)
     #     return state_dict_
 
-    # def load_state_dict(self, state_dict, strict: bool = True):
-    #     """
-    #     Loads a state_dict expecting the state_dict to contain key,values 
-    #     only for the adapter parameters.
-    #     """
-    #     for name, module in self.frozen_model.named_modules():
-    #         if isinstance(module, adapter_mixins.AdapterModuleMixin):
-    #             for adapter_key in self.adapter_name_keys:
-    #                 adapter_module = module.adapter_layer[adapter_key]
-    #                 state_adapter_key = ':'.join([name, adapter_key])
-    #                 adapter_module.load_state_dict(state_dict[state_adapter_key], strict)
-    #             module.set_enabled_adapters(enabled=True)
+    def load_state_dict(self, state_dict, strict: bool = True):
+        """
+        Loads a state_dict expecting the state_dict to contain key,values 
+        only for the adapter parameters.
+        """
+        self.frozen_model.load_state_dict(state_dict, strict=strict)
+
+    def setup_optimizer_param_groups(self):
+        """ModelPT override. Optimizer will get self._optimizer_param_groups"""
+        
+        # Freeze frozen model
+        for param in self.frozen_model.parameters():
+            param.requires_grad = True
+
+        if self.cfg.get('do_layer_norm_weight_decay', False):
+            self._optimizer_param_groups = get_all_params_for_weight_decay_optimization([self.frozen_model])
+        else:
+            self._optimizer_param_groups = get_params_for_weight_decay_optimization([self.frozen_model])
 
     def get_forward_output_and_loss_func(self):
         def fwd_output_and_loss_func(batch, model):
