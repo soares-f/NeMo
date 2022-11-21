@@ -160,7 +160,7 @@ class MegatronGPTFineTuneModel(MegatronGPTModel):
         # we prepare the micro batches for the apex fwd/bwd function
         loss_mean = self.fwd_bwd_step(batch, batch_idx, forward_only=False)
         self.allreduce_gradients()
-        self.log_training_step(loss_mean)
+
         torch.distributed.broadcast(loss_mean, get_last_rank())
 
         if self.cfg.precision == 16:
