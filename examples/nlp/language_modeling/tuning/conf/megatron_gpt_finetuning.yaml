@@ -56,21 +56,12 @@ model:
 
   task_templates: # Add more/replace tasks as needed, these are just examples
   - taskname: "t0_manual" # The task name
-    prompt_template: "{text} {answer}" # Prompt template for task, specify virtual prompt positions with <|VIRTUAL_PROMPT_#|>
+    prompt_template: "{text}\n{answer}" # Prompt template for task, specify virtual prompt positions with <|VIRTUAL_PROMPT_#|>
     total_virtual_tokens: 0 # Sum of tokens in virtual_token_splits must add to this number. Can differ between new and existing tasks, but must match across all new tasks being tuned at the same time.
     virtual_token_splits: [] # number of virtual tokens to be inserted at each VIRTUAL PROMPT location, must add to total_virtual_tokens
     truncate_field: null # The {field} in the prompt template whose text will be truncated if the input is too long, if null, inputs that are too long will just be skipped.
     answer_only_loss: True
     answer_field: "answer"
-
-  adapter_tuning:
-    type: 'parallel_adapter' # this should be either 'parallel_adapter' or 'linear_adapter'
-    adapter_dim: 50
-    adapter_dropout: 0.1
-    norm_position: 'pre' # This can be set to 'pre' or 'post', 'pre' is normally what is used.
-    column_init_method: 'xavier' # IGNORED if linear_adapter is used, options: xavier, zero or normal
-    row_init_method: 'zero' # IGNORED if linear_adapter is used, options: xavier, zero or normal
-    norm_type: 'mixedfusedlayernorm' # IGNORED if layer_adapter is used,  options are ['layernorm', 'mixedfusedlayernorm']
 
   data:
     train_ds: ??? # expects a list of paths to training data files
