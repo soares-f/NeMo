@@ -68,8 +68,8 @@ model:
   data:
     train_ds:
       file_names: ??? # Path to a list of JSONL files corresponding to the source data.
-      global_batch_size: 1
-      micro_batch_size: 1
+      global_batch_size: ${model.global_batch_size}
+      micro_batch_size: ${model.micro_batch_size}
       shuffle: True
       num_workers: 1
       pin_memory: True
@@ -81,8 +81,8 @@ model:
       concat_sampling_probabilities: null # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
     validation_ds:
       file_names: ??? # Path to a list of JSONL files corresponding to the source data.
-      global_batch_size: 1
-      micro_batch_size: 1
+      global_batch_size: ${model.global_batch_size}
+      micro_batch_size: ${model.micro_batch_size}
       shuffle: True
       num_workers: 1
       pin_memory: True
@@ -94,8 +94,8 @@ model:
       concat_sampling_probabilities: null # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
     test_ds:
       file_names: ??? # Path to a list of JSONL files corresponding to the source data.
-      global_batch_size: 1
-      micro_batch_size: 1
+      global_batch_size: ${model.global_batch_size}
+      micro_batch_size: ${model.micro_batch_size}
       shuffle: True
       num_workers: 1
       pin_memory: True
@@ -105,8 +105,6 @@ model:
       concat_sampling_technique: temperature # When providing a list of datasets, this arg defines the sampling strategy. Options: ['temperature', 'random']
       concat_sampling_temperature: 5 # When providing a list of datasets, this arg defines the sampling temperature when strategy='temperature'
       concat_sampling_probabilities: null # When providing a list of datasets, this arg defines the sampling probabilities from each dataset when strategy='random'
-    global_batch_size: 1
-    micro_batch_size: 1
     add_eos: True
     add_sep: True
     add_bos: False
