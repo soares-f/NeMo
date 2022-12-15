@@ -42,6 +42,7 @@ def _modify_config(gpt_cfg, cfg, add_cfg_to_tree=False):
     The `add_cfg_to_tree` arg adds `cfg` to the top of the yaml tree which is needed for all `hparams.yaml` files when passed as an arg to `load_from_checkpoint()`.
     """
     OmegaConf.set_struct(gpt_cfg, True)
+    OmegaConf.resolve(cfg)
     with open_dict(gpt_cfg):
         gpt_cfg.megatron_amp_O2 = cfg.model.get('megatron_amp_O2', False)
         gpt_cfg.micro_batch_size = cfg.model.micro_batch_size
