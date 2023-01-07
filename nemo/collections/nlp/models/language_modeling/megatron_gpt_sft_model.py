@@ -649,6 +649,7 @@ class MegatronGPTSFTModel(MegatronBaseModel, TextGeneration):
         get_dataset_only=False,
         cache_data_path=None,
         load_cache=False,
+        consumed_samples=0,
     ):
         dataset = GPTSupervisedFineTuningDataset(
             data=data,
@@ -664,6 +665,7 @@ class MegatronGPTSFTModel(MegatronBaseModel, TextGeneration):
             tokens_to_generate=tokens_to_generate,
             cache_data_path=cache_data_path,
             load_cache=load_cache,
+            consumed_samples=consumed_samples,
         )
 
         if get_dataset_only:
@@ -769,8 +771,9 @@ class MegatronGPTSFTModel(MegatronBaseModel, TextGeneration):
                 shuffle=False,
                 tokens_to_generate=None,
                 get_dataset_only=False,
-                cache_data_path=None,
-                load_cache=False,
+                cache_data_path=self.cfg.data.train_cache_data_path,
+                load_cache=self.cfg.data.load_cache,
+                consumed_samples=self.init_consumed_samples,
             )
 
         if self.cfg.data.validation_ds is not None:

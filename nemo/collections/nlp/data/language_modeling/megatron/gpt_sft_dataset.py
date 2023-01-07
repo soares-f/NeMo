@@ -54,10 +54,11 @@ class GPTSupervisedFineTuningDataset(Dataset):
         min_seq_length: int = 1,
         add_bos: bool = False,
         add_eos: bool = True,
-        add_sep: bool = True,
+        add_sep: bool = False,
         sep_id: int = None,
         for_train: bool = True,
         answer_only_loss=True,
+        consumed_samples=0,
         tokens_to_generate=None,
         cache_data_path: str = None,  # the cache file
         load_cache: bool = True,  # whether to load from the cache if it is available
@@ -73,6 +74,7 @@ class GPTSupervisedFineTuningDataset(Dataset):
         self.answer_only_loss = answer_only_loss
         self.for_train = for_train
         self.examples = []
+        
 
         if self.sep_id is None:
             self.sep_id = self.tokenizer.sep_id
@@ -90,6 +92,8 @@ class GPTSupervisedFineTuningDataset(Dataset):
             logging.info(f'load the data from the cache file {cache_data_path}')
             with open(cache_data_path, 'rb') as f:
                 self.examples = pickle.load(f)
+            self.examples = self.examples[consumed_samples:]
+            print(f"Length of current dataset: {len(self.examples)}")
         else:
             # Data is just a list of dicts already loaded from a json file or passed in directly as a dict
             if isinstance(data[0], dict):
@@ -163,11 +167,14 @@ class GPTSupervisedFineTuningDataset(Dataset):
         text_ids = self.tokenizer.text_to_ids(doc['text'])
         answer_ids = self.tokenizer.text_to_ids(doc['answer'])
 
+        offset_answer = -1
         total_ids = len(text_ids) + len(answer_ids)
         if self.add_bos:
             total_ids += 1
+            offset_answer += 1
         if self.add_sep:
             total_ids += 1
+            offset_answer += 1
         if self.add_eos:
             total_ids += 1
 
@@ -182,7 +189,8 @@ class GPTSupervisedFineTuningDataset(Dataset):
         if self.add_sep:
             input_ids = input_ids + [self.sep_id]
 
-        answer_start_idx = len(input_ids)
+        
+        answer_start_idx = len(input_ids) + offset_answer
 
         input_ids = input_ids + answer_ids
 
