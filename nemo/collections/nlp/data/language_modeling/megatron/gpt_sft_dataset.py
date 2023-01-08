@@ -92,6 +92,8 @@ class GPTSupervisedFineTuningDataset(Dataset):
             logging.info(f'load the data from the cache file {cache_data_path}')
             with open(cache_data_path, 'rb') as f:
                 self.examples = pickle.load(f)
+            if consumed_samples > len(self.examples):
+                consumed_samples = consumed_samples % len(self.examples)
             self.examples = self.examples[consumed_samples:]
             print(f"Length of current dataset: {len(self.examples)}")
         else:
